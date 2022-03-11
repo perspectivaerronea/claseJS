@@ -34,6 +34,10 @@ input[type=submit], input[type=button]{
     color: floralwhite;
 }
 
+hr{    
+    border: 5px solid orangered;
+}
+
 .flex-item{
     margin: 10px;
     padding-bottom: 5px;

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/estilos.css">
+    <title>Simon - Memoria</title>
+</head>
+<body>
+    <h1>Simon - Juego de Memoria</h1>
+    <div id="mapeo" collapsed>
+        <h3>Mapeo de Controles</h3>
+        <h4>Asignación de la tecla para cada color</h4>
+        <form>
+            <div>
+                <label for="colorOne">Color Arriba:</label>
+                <input id="colorOne" name="colorOne" default=0>
+                <button id="coActualizar">Actualizar</button>
+            </div>
+            <div>
+                <label for="colorTwo">Color Abajo:</label>
+                <input id="colorTwo" name="colorTwo" default=0>
+                <button id="ctActualizar">Actualizar</button>
+            </div>
+            <div>
+                <label for="colorThree">Color Izquierda:</label>
+                <input id="colorThree" name="colorThree" default=0>
+                <button id="cthActualizar">Actualizar</button>
+            </div>
+            <div>
+                <label for="colorFour">Color Derecha:</label>
+                <input id="colorFour" name="colorFour" default=0>
+                <button id="cfActualizar">Actualizar</button>
+            </div>
+            
+        </form>
+    </div>
+    <div class="contenededor">
+        <div class="arriba" id="up"></div>
+        <div class="abajo" id="down"></div>
+        <div class="izquierda" id="left"></div>
+        <div class="derecha" id="rigth"></div>
+    </div>
+</body>
+<script src="../js/simon.js"></script>
+</html>
