@@ -54,6 +54,10 @@ hr{
     background-color: rgb(226, 113, 38);
 }
 
+.editar{
+    align-items: flex-end;
+}
+
 #meses{
     display: flex;
     flex-wrap: wrap;    
@@ -61,22 +65,44 @@ hr{
     margin: 0 auto;
 }
 
-#meses div h4{
+#meses .cabeceraMes{
     background-color: darkorange;
-    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content:center;
+    justify-content: space-between;
 }
 
-#meses div label{
-    /* background-color: darkorange; */
+#meses .cabeceraMes h4{    
+    margin: 0;
+    display: flex;
+     align-items: center;     
+}
+
+#meses .cabeceraMes input{    
+    margin: 0;
+    margin-right: 8px;
+    display: flex;
+    align-self: center;    
+}
+
+#meses div label{    
     color: floralwhite;    
 }
 
 #meses div input{
     text-align: right;
-    color: floralwhite;    
+    color: black;    
     margin-left: 6px;
     margin-right: 6px;
 }
+
+#meses div input:disabled{    
+    color: floralwhite;        
+}
+
+
 
 #cargarPrueba{
     background-color:darkslategrey;

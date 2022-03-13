@@ -13,6 +13,16 @@ cuando ya podamos trabajar con el DOM (o al menos esa es la idea).
 const SALTO = "\n";
 const DOS_DECIMALES = (num) => { return Math.round(num * 100) / 100; };
 
+//VARIABLES
+let cajaMeses = document.getElementById("meses");
+let montoObjetivo = document.getElementById("montoObjetivo");
+let ahorroMensual = document.getElementById("ahorroMensual");
+let tna = document.getElementById("tna");
+let reinvertir = document.getElementById('reinvertir');
+let resultado = document.getElementById('resultado');
+
+let PlanAhorroTemp;
+
 //CLASES
 
 class PlazoFijo {
@@ -66,11 +76,16 @@ class PlazoFijo {
         this.ahorroAcumulado += this.inversion;
     }
 
+    cancelarAhorroAcumulado() {
+        this.ahorroAcumulado -= this.inversion;
+    }
+
     calcularGanancia() {
         this.calcularTNAMensual();
         this.calcularAhorroAcumulado();
         this.ganancia = DOS_DECIMALES(this.ahorroAcumulado * this.tnaMensual / 100);
     }
+
 
 }
 
@@ -124,7 +139,7 @@ class Mes {
     }
 
     setAhorroAcumulado(ahorroAcumulado) {
-        this.ahorroAcumulado += ahorroAcumulado;
+        this.ahorroAcumulado = ahorroAcumulado;
     }
 
     setGananciaAnterior(gananciaAnterior) {
@@ -154,15 +169,21 @@ class Mes {
         return monto;
     }
 
+    calularAhorroAcumulado(ahorroAcumulado) {
+        this.ahorroAcumulado += ahorroAcumulado;
+    }
+
     calcularPlazoFijo() {
-        this.setAhorroAcumulado(this.inversion);
+        this.calularAhorroAcumulado(this.inversion);
         this.plazoFijo.calcularGanancia();
 
     }
 
     recalcularPlazoFijo() {
+        this.plazoFijo.cancelarAhorroAcumulado();
         this.plazoFijo.setInversion(this.obtenerMonto());
         this.plazoFijo.calcularGanancia();
+        this.setAhorroAcumulado(this.plazoFijo.getAhorroAcumulado());
     }
 }
 
@@ -294,6 +315,31 @@ class PlanAhorro {
         }
     }
 
+    reCalcularPlanDeAhorro() {
+        let nuevoMes = false;
+        this.falta = this.getMontoObjetivo();
+        for (const mesN of this.mes) {
+            mesN.calcularPlazoFijo();
+
+            let inversion = mesN.getInversion();
+            let ganancia = mesN.getGanancia();
+            let monto = 0;
+
+            if (this.reinvertir) {
+                monto = inversion + ganancia;
+            } else {
+                monto = inversion;
+            }
+
+            this.calcularAhorroAcumulado(monto);
+            this.calcularFalta(monto);
+            this.calcularGananciaTotal(ganancia);
+        }
+        if (this.getFalta() > 0) {
+            calcularPlanDeAhorro();
+        }
+    }
+
 }
 
 function limpiarMeses(cajaMeses) {
@@ -326,25 +372,30 @@ function listadoMeses(pa) {
         } else {
             cambioAnio = '';
         }
-
-        contenedorMes.innerHTML = ` <div class='flex-item ${cambioAnio}'>
-                                        <h4> Mes ${i + 1}°</h4> 
+        
+        if ((pa.getMontoObjetivo() - mes.getAhorroAcumulado()) >= 0) {
+            contenedorMes.innerHTML = ` <div class='flex-item ${cambioAnio}'>
+                                        <div class='cabeceraMes'>
+                                            <h4> Mes ${i + 1}°</h4> 
+                                            <input type="checkbox" id="editar${i}" name="Editar" class="editar">
+                                        </div>
                                         <form>
                                             <div>
                                                 <label for="InversionMensual"> Inversión Mensual:</label>
-                                                <input id="inversionMensual" name="InversionMensual" value= ${mes.getInversion()} disabled>
+                                                <input id="inversionMensual${i}" name="InversionMensual" value= ${mes.getInversion()} disabled>
                                             </div>
                                             <div>    
                                                 <label for="GananciaAnterior"> Ganancia Anterior:</label>
-                                                <input id="gananciaAnterior" name="InversionMensual" value= ${mes.getGanancia()} disabled>
+                                                <input id="gananciaAnterior${i}" name="InversionMensual" value= ${mes.getGanancia()} disabled>
                                             </div > 
                                             <div>    
                                             <label for="AhorroAcumulado"> Ahorro Acumulado:</label>
-                                            <input id="ahorroAcumulado" name="AhorroAcumulado" value= ${mes.getAhorroAcumulado()} disabled>
+                                            <input id="ahorroAcumulado${i}" name="AhorroAcumulado" value= ${mes.getAhorroAcumulado()} disabled>
                                         </div > 
                                         </form >
                                     </div>`;
-        cajaMeses.appendChild(contenedorMes);
+            cajaMeses.appendChild(contenedorMes);
+        }
     }
 }
 
@@ -367,7 +418,7 @@ Esta función es la que crea el plan de ahorro, crea el listado de meses y pone 
 */
 function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
 
-    let resultado = document.getElementById('resultado');
+    // let resultado = document.getElementById('resultado');
     let parrafo = document.createElement('p');
 
     let pa = new PlanAhorro(parseFloat(montoObjetivo), parseFloat(ahorroMensual), decision, parseFloat(tna));
@@ -393,16 +444,23 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
     let texto = document.createTextNode(mensaje);
     parrafo.appendChild(texto);
     resultado.appendChild(parrafo);
+
+    let Editar = document.querySelectorAll(".editar");
+    for (const ed of Editar) {
+        ed.addEventListener("change", toggleEdicion);
+    }
+
+    PlanAhorroTemp = pa;
 }
 
 /*
 Función general que se dispara al crear el plan de ahorro
 */
 function armarPlanDeAhorro(e) {
-    let montoObjetivo = document.getElementById("montoObjetivo");
-    let ahorroMensual = document.getElementById("ahorroMensual");
-    let tna = document.getElementById("tna");
-    let reinvertir = document.getElementById('reinvertir');
+    // let montoObjetivo = document.getElementById("montoObjetivo");
+    // let ahorroMensual = document.getElementById("ahorroMensual");
+    // let tna = document.getElementById("tna");
+    // let reinvertir = document.getElementById('reinvertir');
     let decision = false;
 
 
@@ -431,12 +489,12 @@ function armarPlanDeAhorro(e) {
 
 //Limpia el formulario y todo lo demás.
 function limpiar() {
-    let cajaMeses = document.getElementById("meses");
-    let montoObjetivo = document.getElementById("montoObjetivo");
-    let ahorroMensual = document.getElementById("ahorroMensual");
-    let tna = document.getElementById("tna");
-    let reinvertir = document.getElementById('reinvertir');
-    let resultado = document.getElementById('resultado');
+    // let cajaMeses = document.getElementById("meses");
+    // let montoObjetivo = document.getElementById("montoObjetivo");
+    // let ahorroMensual = document.getElementById("ahorroMensual");
+    // let tna = document.getElementById("tna");
+    // let reinvertir = document.getElementById('reinvertir');
+    // let resultado = document.getElementById('resultado');
 
     montoObjetivo.value = '';
     ahorroMensual.value = '';
@@ -470,10 +528,10 @@ function borrarGuardado() {
 //Guardar Plan
 function guardarPlan() {
 
-    let montoObjetivo = document.getElementById("montoObjetivo");
-    let ahorroMensual = document.getElementById("ahorroMensual");
-    let tna = document.getElementById("tna");
-    let reinvertir = document.getElementById('reinvertir');
+    // let montoObjetivo = document.getElementById("montoObjetivo");
+    // let ahorroMensual = document.getElementById("ahorroMensual");
+    // let tna = document.getElementById("tna");
+    // let reinvertir = document.getElementById('reinvertir');
 
     if (reinvertir.checked) {
         reinvertir.value = 'true';
@@ -492,12 +550,12 @@ function guardarPlan() {
 
 //Carga Plan, dispara el procesamiento si es que hay algún valor guardado
 function cargarPlan() {
-    let cajaMeses = document.getElementById("meses");
-    let montoObjetivo = document.getElementById("montoObjetivo");
-    let ahorroMensual = document.getElementById("ahorroMensual");
-    let tna = document.getElementById("tna");
-    let reinvertir = document.getElementById('reinvertir');
-    let resultado = document.getElementById('resultado');
+    // let cajaMeses = document.getElementById("meses");
+    // let montoObjetivo = document.getElementById("montoObjetivo");
+    // let ahorroMensual = document.getElementById("ahorroMensual");
+    // let tna = document.getElementById("tna");
+    // let reinvertir = document.getElementById('reinvertir');
+    // let resultado = document.getElementById('resultado');
     let decision = false;
 
 
@@ -539,12 +597,12 @@ function valoresPrueba() {
 
 function cargarValoresPrueba() {
 
-    let cajaMeses = document.getElementById("meses");
-    let montoObjetivo = document.getElementById("montoObjetivo");
-    let ahorroMensual = document.getElementById("ahorroMensual");
-    let tna = document.getElementById("tna");
-    let reinvertir = document.getElementById('reinvertir');
-    let resultado = document.getElementById('resultado');
+    // let cajaMeses = document.getElementById("meses");
+    // let montoObjetivo = document.getElementById("montoObjetivo");
+    // let ahorroMensual = document.getElementById("ahorroMensual");
+    // let tna = document.getElementById("tna");
+    // let reinvertir = document.getElementById('reinvertir');
+    // let resultado = document.getElementById('resultado');
     let decision = false;
 
     //Si hay datos guardados disparo la generación del plan
@@ -569,6 +627,59 @@ function cargarValoresPrueba() {
 
     //Genera el plan asociado a los valores que se habían almacenado
     creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
+}
+
+function actualizarValor() {
+    let parrafo = document.createElement('p');
+    let num = (this.id).replace('inversionMensual', '');
+    let monto = this.value;
+
+    let mes = PlanAhorroTemp.getMes(num);
+
+    mes.setInversion(parseFloat(monto));
+    mes.recalcularPlazoFijo();
+
+    document.getElementById('gananciaAnterior' + num).value = mes.getGanancia();
+    document.getElementById('ahorroAcumulado' + num).value = mes.getAhorroAcumulado();
+
+    PlanAhorroTemp.reCalcularPlanDeAhorro();
+
+    listadoMeses(PlanAhorroTemp);
+
+    // PROCESAMIENTO DEL PLAZO FIJO    
+    let mensaje = "El objetivo de tu plazo fijo es de un monto de $" + PlanAhorroTemp.getMontoObjetivo() + SALTO;
+
+    // EN BASE A LA CANTIDAD DE MESES QUE LLEVE LLEGAR AL OBJETIVO CAMBIA EL MENSAJE QUE SE MUESTRA AL USUARIO
+    if (PlanAhorroTemp.getMeses() == 1) {
+        submensaje = 'mes';
+    } else {
+        submensaje = 'meses';
+    }
+
+    // mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '. Las ganancias totales generadas por el plazo fijo a modo de interés seran de $' + pa.getGananciaTotal();
+    mensaje += 'Vas a lograr tu objetivo en ' + PlanAhorroTemp.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + PlanAhorroTemp.getAhorroAcumulado() + '.';
+
+    // SE LE MUESTRA AL USUARIO EL RESULTADO DEL PROCESAMIENTO
+    let texto = document.createTextNode(mensaje);
+    parrafo.appendChild(texto);
+    resultado.appendChild(parrafo);
+
+    let Editar = document.querySelectorAll(".editar");
+    for (const ed of Editar) {
+        ed.addEventListener("change", toggleEdicion);
+    }
+
+
+}
+
+function toggleEdicion() {
+    let valor = this.checked;
+    let num = (this.id).replace('editar', '');
+    let mesIM = document.getElementById("inversionMensual" + num);
+    mesIM.disabled = !valor;
+
+    mesIM.addEventListener("change", actualizarValor);
+
 }
 
 //EVENTOS 
@@ -600,4 +711,3 @@ btnCargarPrueba.addEventListener("click", cargarValoresPrueba);
 //BORRAR DATOS GUARDADOS
 let btnBorrar = document.getElementById("borrar");
 btnBorrar.addEventListener("click", borrarGuardado);
-
