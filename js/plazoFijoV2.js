@@ -9,6 +9,15 @@ let ahorroMensual = document.getElementById("ahorroMensual");
 let tna = document.getElementById("tna");
 let reinvertir = document.getElementById('reinvertir');
 let resultado = document.getElementById('resultado');
+let mes_modificado = [];
+
+//BOTONES
+let submit = document.getElementById("procesar");
+let btnLimpiar = document.getElementById("limpiar");
+let btnGuardar = document.getElementById("guardar");
+let btnCargar = document.getElementById("cargar");
+let btnCargarPrueba = document.getElementById("cargarPrueba");
+let btnBorrar = document.getElementById("borrar");
 
 
 class PlazoFijo {
@@ -69,9 +78,7 @@ class Mes {
     calcularMontoInversion() {
         let monto = this.inversion + this.ahorroAcumulado;
 
-        if (this.reinvertir) {
-            monto += this.interesAnterior;
-        }
+        monto += (this.reinvertir) ? this.interesAnterior : 0;
 
         return monto;
     }
@@ -109,9 +116,13 @@ class PlanAhorro {
         return this.mes[id];
     }
 
-    actualizarMeses(id){
+    getListadoMeses(){
+        return this.mes;
+    }
+
+    actualizarMeses(id) {
         let temp;
-        while(this.getMeses() > id){
+        while (this.getMeses() > id) {
             temp = this.mes.pop();
         }
     }
@@ -175,20 +186,15 @@ class PlanAhorro {
         mesActual.procesarMes();
 
         let inversion = mesActual.getInversion();
-        let InteresGenerado = mesActual.getInteresGenerado();
+        let interesGenerado = mesActual.getInteresGenerado();
         let monto = 0;
 
-        if (this.reinvertir) {
-            monto = inversion + InteresGenerado;
-        } else {
-            monto = inversion;
-        }
+        monto = (this.reinvertir) ? inversion + interesGenerado : inversion;
 
         this.calcularAhorroAcumulado(monto);
         this.calcularFalta(monto);
-        this.calcularInteresGeneradoTotal(InteresGenerado);
+        this.calcularInteresGeneradoTotal(interesGenerado);
 
-        console.log(id + ' ' + mesActual);
     }
 
     calcularPlanAhorro() {
@@ -215,7 +221,7 @@ class PlanAhorro {
                 this.procesarMes(i);
                 if ((i + 1) < this.getMeses()) {
                     this.mes[i + 1].setAhorroAcumulado(this.getAhorroAcumulado());
-                    this.mes[i + 1].setInteresAnterior(this.mes[i].getInteresGenerado());                    
+                    this.mes[i + 1].setInteresAnterior(this.mes[i].getInteresGenerado());
                 }
             } else {
                 this.nuevoMes();
@@ -232,11 +238,45 @@ class PlanAhorro {
 
 //FUNCIONES
 
+function mensajes(icono, titulo, texto, tiempo, botonConfirmar, botonCancelar, textoConfirmar, textoCancelar) {
+
+    if (textoConfirmar == '') {
+        textoConfirmar = 'Está bien';
+    }
+
+    if (textoCancelar == '') {
+        textoCancelar = ' Cancelar';
+    }
+
+    if (tiempo != 0) {
+        Swal.fire({
+            icon: icono,
+            title: titulo,
+            text: texto,
+            timer: tiempo,
+            showConfirmButton: botonConfirmar,
+            showCancelButton: botonCancelar,
+            confirmButtonText: textoConfirmar,
+            cancelButtonText: textoCancelar,
+            timerProgressBar: true,
+        })
+    } else {
+        Swal.fire({
+            icon: icono,
+            title: titulo,
+            text: texto,
+            showConfirmButton: botonConfirmar,
+            showCancelButton: botonCancelar,
+            confirmButtonText: textoConfirmar,
+            cancelButtonText: textoCancelar,
+        })
+    }
+}
+
 
 function limpiarMeses(cajaMeses) {
     //Borrar los elementos en caso que se esté reprocesando        
     if (cajaMeses.children.length > 0) {
-        // resultado.removeChild(resultado.lastElementChild);
         while (cajaMeses.hasChildNodes()) {
             cajaMeses.removeChild(cajaMeses.firstChild);
         }
@@ -258,11 +298,7 @@ function listadoMeses(pa) {
         let cambioAnio;
 
         // Para el més que indica un cambio de año se agrega una clase para que sea destacado
-        if ((i + 1) % 12 == 0) {
-            cambioAnio = 'cambioAnio';
-        } else {
-            cambioAnio = '';
-        }
+        cambioAnio = ((i + 1) % 12 == 0) ? 'cambioAnio' : '';
 
         if ((pa.getObjetivo() - mes.getAhorroAcumulado()) >= 0) {
             contenedorMes.innerHTML = ` <div class='flex-item ${cambioAnio}'>
@@ -290,14 +326,17 @@ function listadoMeses(pa) {
     }
 }
 
-function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
+function resultadoPlan(pa) {
 
-    // let resultado = document.getElementById('resultado');
+    //limpia los resultados
+    limpiarMeses(cajaMeses);
+
+    //Borrar los elementos en caso que se esté reprocesando        
+    if (resultado.children.length > 0) {
+        resultado.removeChild(resultado.lastElementChild);
+    }
+
     let parrafo = document.createElement('p');
-
-    let pa = new PlanAhorro(parseFloat(montoObjetivo), parseFloat(ahorroMensual), decision, parseFloat(tna));
-
-    pa.calcularPlanAhorro();
 
     listadoMeses(pa);
 
@@ -305,13 +344,9 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
     let mensaje = "El objetivo de tu plazo fijo es de un monto de $" + pa.getObjetivo() + SALTO;
 
     // EN BASE A LA CANTIDAD DE MESES QUE LLEVE LLEGAR AL OBJETIVO CAMBIA EL MENSAJE QUE SE MUESTRA AL USUARIO
-    if (pa.getMeses() == 1) {
-        submensaje = 'mes';
-    } else {
-        submensaje = 'meses';
-    }
+    submensaje = (pa.getMeses() == 1) ? 'mes' : 'meses';
 
-    // mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '. Las ganancias totales generadas por el plazo fijo a modo de interés seran de $' + pa.getGananciaTotal();
+    // MENSAJE DE RESULTADO
     mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '.';
 
     // SE LE MUESTRA AL USUARIO EL RESULTADO DEL PROCESAMIENTO
@@ -323,8 +358,22 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
     for (const ed of Editar) {
         ed.addEventListener("change", toggleEdicion);
     }
+}
+
+function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
+
+    let pa = new PlanAhorro(parseFloat(montoObjetivo), parseFloat(ahorroMensual), decision, parseFloat(tna));
+
+    pa.calcularPlanAhorro();
+
+    resultadoPlan(pa);
 
     PlanAhorroTemp = pa;
+
+    mensajes('success', 'Generación Completa', 'Se generó con éxito el plan de ahorro.', 1500, false, false, '', '');
+
+    btnLimpiar.disabled = false;
+    btnGuardar.disabled = false;
 }
 
 
@@ -346,11 +395,13 @@ function cargarValoresPrueba() {
     tna.value = JSON.parse(localStorage.getItem('tnaPrueba'));
     reinvertir.checked = (JSON.parse(localStorage.getItem('reinvertirPrueba')) == 'true');
 
-    if (reinvertir.checked) {
-        decision = true;
-    } else {
-        decision = false;
-    }
+
+    //VALIDACIONES
+    if (!(validacion(montoObjetivo))) { return false; }
+    if (!(validacion(ahorroMensual))) { return false; }
+    if (!(validacion(tna))) { return false; }
+
+    decision = (reinvertir.checked) ? true : false;
 
     //limpia los resultados
     limpiarMeses(cajaMeses);
@@ -362,8 +413,9 @@ function cargarValoresPrueba() {
 
     //Genera el plan asociado a los valores que se habían almacenado
     creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
-}
 
+    mensajes('info', 'Carga Valores de Prueba', 'Se cargó un caso de ejemplo para probar la funcionalidad.', 1500, false, false, '', '');
+}
 
 function validacion(obj) {
     let claseError = 'incompleto';
@@ -371,6 +423,9 @@ function validacion(obj) {
     if (obj.value == "") {
         obj.focus();
         obj.classList.add(claseError);
+
+        mensajes('error', 'Dato Requerido', 'Falta definir un valor para este campo.', 0, true, false, '', '');
+
         return false;
     }
     return true;
@@ -379,52 +434,39 @@ function validacion(obj) {
 function actualizarValor() {
     let parrafo = document.createElement('p');
     let num = (this.id).replace('inversionMensual', '');
-    let monto = this.value;
+    let monto = this;
 
-    let mes = PlanAhorroTemp.getMes(num);
+    Swal.fire({
+        icon: 'warning',
+        title: 'Actualización del Plan de Ahorro',
+        text: '¿Quiere recalcular el plan de ahorro con el valor modificado?',
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: '¡sí! Actualizalo',
+        cancelButtonText: 'Pensandolo mejor, no lo actualices',
+    }).then(function (res) {
+        if (res.isDismissed) {
 
-    mes.setInversion(parseFloat(monto));
-    mes.reCrearPlazo();
-    // mes.procesarMes();
+            let mes = PlanAhorroTemp.getMes(num);
 
-    document.getElementById('gananciaAnterior' + num).value = mes.getInteresGenerado();
-    document.getElementById('ahorroAcumulado' + num).value = mes.getAhorroAcumulado();
+            monto.value = mes.getInversion();
+        } else {
 
-    PlanAhorroTemp.reCalcularPlanDeAhorro();
+            let mes = PlanAhorroTemp.getMes(num);
 
-    //limpia los resultados
-    limpiarMeses(cajaMeses);
+            mes.setInversion(parseFloat(monto.value));
+            mes.reCrearPlazo();
 
-    //Borrar los elementos en caso que se esté reprocesando        
-    if (resultado.children.length > 0) {
-        resultado.removeChild(resultado.lastElementChild);
-    }
+            document.getElementById('gananciaAnterior' + num).value = mes.getInteresGenerado();
+            document.getElementById('ahorroAcumulado' + num).value = mes.getAhorroAcumulado();
 
-    listadoMeses(PlanAhorroTemp);
+            PlanAhorroTemp.reCalcularPlanDeAhorro();
 
-    // PROCESAMIENTO DEL PLAZO FIJO    
-    let mensaje = "El objetivo de tu plazo fijo es de un monto de $" + PlanAhorroTemp.getObjetivo() + SALTO;
+            resultadoPlan(PlanAhorroTemp);
 
-    // EN BASE A LA CANTIDAD DE MESES QUE LLEVE LLEGAR AL OBJETIVO CAMBIA EL MENSAJE QUE SE MUESTRA AL USUARIO
-    if (PlanAhorroTemp.getMeses() == 1) {
-        submensaje = 'mes';
-    } else {
-        submensaje = 'meses';
-    }
-
-    // mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '. Las ganancias totales generadas por el plazo fijo a modo de interés seran de $' + pa.getGananciaTotal();
-    mensaje += 'Vas a lograr tu objetivo en ' + PlanAhorroTemp.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + PlanAhorroTemp.getAhorroAcumulado() + '.';
-
-    // SE LE MUESTRA AL USUARIO EL RESULTADO DEL PROCESAMIENTO
-    let texto = document.createTextNode(mensaje);
-    parrafo.appendChild(texto);
-    resultado.appendChild(parrafo);
-
-    let Editar = document.querySelectorAll(".editar");
-    for (const ed of Editar) {
-        ed.addEventListener("change", toggleEdicion);
-    }
-
+            mensajes('success', 'Actualización del Plan de Ahorro', 'Se Actualizó el plan en base al cambio que se realizó en el mes.', 1000, false, false, '', '');
+        }
+    })
 }
 
 function toggleEdicion() {
@@ -451,11 +493,7 @@ function armarPlanDeAhorro(e) {
     if (!(validacion(ahorroMensual))) { return false; }
     if (!(validacion(tna))) { return false; }
 
-    if (reinvertir.checked) {
-        decision = true;
-    } else {
-        decision = false;
-    }
+    decision = (reinvertir.checked) ? true : false;
 
     //Borrar los elementos en caso que se esté reprocesando        
     if (resultado.children.length > 0) {
@@ -463,23 +501,36 @@ function armarPlanDeAhorro(e) {
     }
 
     creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
-
 }
 
 //Limpia el formulario y todo lo demás.
 function limpiar() {
+    Swal.fire({
+        icon: 'question',
+        title: 'Limpar Plan de Ahorro',
+        text: '¿Quiere borrar el plan de ahorro actual?',
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Limpiá todo por favor',
+        cancelButtonText: 'Mejor no, lo estoy revisando todavía',
+    }).then(function (res) {
+        if (!(res.isDismissed)) {
+            montoObjetivo.value = '';
+            ahorroMensual.value = '';
+            tna.value = '';
+            reinvertir.checked = false;
 
-    montoObjetivo.value = '';
-    ahorroMensual.value = '';
-    tna.value = '';
-    reinvertir.checked = false;
+            limpiarMeses(cajaMeses);
 
-    limpiarMeses(cajaMeses);
+            //Borrar los elementos en caso que se esté reprocesando        
+            if (resultado.children.length > 0) {
+                resultado.removeChild(resultado.lastElementChild);
+            }
 
-    //Borrar los elementos en caso que se esté reprocesando        
-    if (resultado.children.length > 0) {
-        resultado.removeChild(resultado.lastElementChild);
-    }
+            btnLimpiar.disabled = true;
+            btnGuardar.disabled = true;
+        }
+    })
 }
 
 //Guarda el objeto que se pasa como parametro en formato JSON dentro del local storage
@@ -496,41 +547,43 @@ function cargarJSON(obj) {
 function borrarGuardado() {
     localStorage.clear();
     valoresPrueba();
+
+    btnCargar.disabled = true;
+    btnBorrar.disabled = true;
 }
 
 //Guardar Plan
 function guardarPlan() {
-    if (reinvertir.checked) {
-        reinvertir.value = 'true';
-    } else {
-        reinvertir.value = 'false';
-    }
+
+    reinvertir.value = (reinvertir.checked) ? 'true' : 'false';
 
     //JSON
     guardarJSON(montoObjetivo);
     guardarJSON(ahorroMensual);
     guardarJSON(tna);
     guardarJSON(reinvertir);
+
+    btnCargar.disabled = false;
+    btnBorrar.disabled = false;
 }
 
 //Carga Plan, dispara el procesamiento si es que hay algún valor guardado
 function cargarPlan() {
     let decision = false;
 
-    //Si hay datos guardados disparo la generación del plan
+    //Si hay datos guardados disparo la generación del plan    
+    montoObjetivo.value = cargarJSON(montoObjetivo) || 0;
+    ahorroMensual.value = cargarJSON(ahorroMensual) || 0;
+    tna.value = cargarJSON(tna) || 0;
+    reinvertir.checked = (cargarJSON(reinvertir) == 'true') ? true : false;    
+
+    //VALIDACIONES
+    if (!(validacion(montoObjetivo))) { return false; }
+    if (!(validacion(ahorroMensual))) { return false; }
+    if (!(validacion(tna))) { return false; }
+
     if (cargarJSON(montoObjetivo) != null) {
-
-        montoObjetivo.value = cargarJSON(montoObjetivo);
-        ahorroMensual.value = cargarJSON(ahorroMensual);
-        tna.value = cargarJSON(tna);
-        reinvertir.checked = (cargarJSON(reinvertir) == 'true');
-
-
-        if (reinvertir.checked) {
-            decision = true;
-        } else {
-            decision = false;
-        }
+        decision = (reinvertir.checked) ? true : false;
 
         //limpia los resultados
         limpiarMeses(cajaMeses);
@@ -542,37 +595,40 @@ function cargarPlan() {
 
         //Genera el plan asociado a los valores que se habían almacenado
         creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
+
     }
 
 }
 
+let PlanAhorroTemp = new PlanAhorro(parseFloat(0), parseFloat(0), false, parseFloat(0));
 
 //EVENTOS 
 
 //PROCESAR 
-let submit = document.getElementById("procesar");
 submit.addEventListener("click", armarPlanDeAhorro);
 
 //LIMPIAR
-let btnLimpiar = document.getElementById("limpiar");
 btnLimpiar.addEventListener("click", limpiar);
 
 //GUARDAR
-let btnGuardar = document.getElementById("guardar");
 btnGuardar.addEventListener("click", guardarPlan);
 
 //CARGAR
-let btnCargar = document.getElementById("cargar");
 btnCargar.addEventListener("click", cargarPlan);
 
 //CREA VALORES DE PRUEBA EN EL LOCAL STORAGE
 valoresPrueba();
 
 //CARGAR VALORES DE PRUEBA
-let btnCargarPrueba = document.getElementById("cargarPrueba");
 btnCargarPrueba.addEventListener("click", cargarValoresPrueba);
 
-
 //BORRAR DATOS GUARDADOS
-let btnBorrar = document.getElementById("borrar");
 btnBorrar.addEventListener("click", borrarGuardado);
+
+//Si bien todos los botones especiales como 'limpiar', 'guardar', 'cargar', 'borrar datos guardados' arrancan en estado disabled
+//evaluo si ya existe alguna de las variables en el storage, y de ser así, habilito los campos correspondientes. 
+//¡IMPORTANTE! <-- Este código evalua por el localstorage de las variables generadas por el usuario, NO por los valores de prueba
+if (cargarJSON(montoObjetivo) != null) {
+    btnCargar.disabled = false;
+    btnBorrar.disabled = false;
+}

@@ -4,7 +4,7 @@ body{
     font-size: 19px;
 }
 
-h1,h2{
+.titulo{    
     color: floralwhite;
     background-color: orangered;
     padding-left: 1%;
@@ -102,12 +102,13 @@ hr{
     color: floralwhite;        
 }
 
-
-
 #cargarPrueba{
     background-color:darkslategrey;
 }
 
+input[disabled]{
+    background-color: darkgray;    
+}
 
 @media(max-width:910px){
     input[type=submit], input[type=button]{
