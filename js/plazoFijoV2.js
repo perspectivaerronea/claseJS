@@ -384,6 +384,14 @@ function valoresPrueba() {
     localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
 }
 
+function validaciones(){
+    if (!(validacion(montoObjetivo))) { return false; }
+    if (!(validacion(ahorroMensual))) { return false; }
+    if (!(validacion(tna))) { return false; }
+
+    return true;
+}
+
 
 function cargarValoresPrueba() {
 
@@ -397,9 +405,9 @@ function cargarValoresPrueba() {
 
 
     //VALIDACIONES
-    if (!(validacion(montoObjetivo))) { return false; }
-    if (!(validacion(ahorroMensual))) { return false; }
-    if (!(validacion(tna))) { return false; }
+    if(!validaciones()){
+        return false;
+    }
 
     decision = (reinvertir.checked) ? true : false;
 
@@ -489,9 +497,9 @@ function armarPlanDeAhorro(e) {
     e.preventDefault();
 
     //VALIDACIONES
-    if (!(validacion(montoObjetivo))) { return false; }
-    if (!(validacion(ahorroMensual))) { return false; }
-    if (!(validacion(tna))) { return false; }
+    if(!validaciones()){
+        return false;
+    }
 
     decision = (reinvertir.checked) ? true : false;
 
@@ -578,9 +586,9 @@ function cargarPlan() {
     reinvertir.checked = (cargarJSON(reinvertir) == 'true') ? true : false;    
 
     //VALIDACIONES
-    if (!(validacion(montoObjetivo))) { return false; }
-    if (!(validacion(ahorroMensual))) { return false; }
-    if (!(validacion(tna))) { return false; }
+    if(!validaciones()){
+        return false;
+    }
 
     if (cargarJSON(montoObjetivo) != null) {
         decision = (reinvertir.checked) ? true : false;
