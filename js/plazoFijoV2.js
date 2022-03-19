@@ -3,21 +3,21 @@ const SALTO = "\n";
 const DOS_DECIMALES = (num) => { return Math.round(num * 100) / 100; };
 
 //VARIABLES
-let cajaMeses = document.getElementById("meses");
-let montoObjetivo = document.getElementById("montoObjetivo");
-let ahorroMensual = document.getElementById("ahorroMensual");
-let tna = document.getElementById("tna");
-let reinvertir = document.getElementById('reinvertir');
-let resultado = document.getElementById('resultado');
-let mes_modificado = [];
+const cajaMeses = document.getElementById("meses");
+const montoObjetivo = document.getElementById("montoObjetivo");
+const ahorroMensual = document.getElementById("ahorroMensual");
+const tna = document.getElementById("tna");
+const reinvertir = document.getElementById('reinvertir');
+const resultado = document.getElementById('resultado');
+const mes_modificado = [];
 
 //BOTONES
-let submit = document.getElementById("procesar");
-let btnLimpiar = document.getElementById("limpiar");
-let btnGuardar = document.getElementById("guardar");
-let btnCargar = document.getElementById("cargar");
-let btnCargarPrueba = document.getElementById("cargarPrueba");
-let btnBorrar = document.getElementById("borrar");
+const submit = document.getElementById("procesar");
+const btnLimpiar = document.getElementById("limpiar");
+const btnGuardar = document.getElementById("guardar");
+const btnCargar = document.getElementById("cargar");
+const btnCargarPrueba = document.getElementById("cargarPrueba");
+const btnBorrar = document.getElementById("borrar");
 
 
 class PlazoFijo {
@@ -32,11 +32,11 @@ class PlazoFijo {
     }
 
     getInteres() {
-        return this.interes;
+        return DOS_DECIMALES(this.interes);
     }
 
     calcular() {
-        this.interes = DOS_DECIMALES(this.inversion * this.getTnaMensual() / 100);
+        this.interes = this.inversion * this.getTnaMensual() / 100;
     }
 
 }
@@ -312,8 +312,8 @@ function listadoMeses(pa) {
                                                 <input id="inversionMensual${i}" name="InversionMensual" value= ${mes.getInversion()} disabled>
                                             </div>
                                             <div>    
-                                                <label for="GananciaAnterior"> Ganancia Anterior:</label>
-                                                <input id="gananciaAnterior${i}" name="InversionMensual" value= ${mes.getInteresGenerado()} disabled>
+                                                <label for="InteresGenerado"> Interés Generado:</label>
+                                                <input id="interesGenerado${i}" name="InteresGenerado" value= ${mes.getInteresGenerado()} disabled>
                                             </div > 
                                             <div>    
                                             <label for="AhorroAcumulado"> Ahorro Acumulado:</label>
@@ -434,6 +434,12 @@ function validacion(obj) {
 
         mensajes('error', 'Dato Requerido', 'Falta definir un valor para este campo.', 0, true, false, '', '');
 
+        return false;
+    } else if(isNaN(obj.value)){
+        obj.focus();
+        obj.classList.add(claseError);
+        
+        mensajes('error', 'Tipo de Dato Incorrecto', 'El valor ingresado debe ser un número.', 0, true, false, '', '');
         return false;
     }
     return true;
@@ -640,3 +646,7 @@ if (cargarJSON(montoObjetivo) != null) {
     btnCargar.disabled = false;
     btnBorrar.disabled = false;
 }
+
+// Al ingresar, si no hay generado ningún plan, no hay razón por la cual deban estar habilitados los campos de LIMPIAR y GUARDAR
+btnLimpiar.disabled = true;
+btnGuardar.disabled = true;
