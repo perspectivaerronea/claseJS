@@ -67,6 +67,10 @@ class Mes {
         this.interesAnterior = interesAnterior;
     }
 
+    getInteresAnterior(){
+        return DOS_DECIMALES(this.interesAnterior);
+    }
+
     getInteresGenerado() {
         return DOS_DECIMALES(this.plazoFijo.getInteres());
     }
@@ -182,26 +186,32 @@ class PlanAhorro {
     procesarMes(id) {
 
         let mesActual = this.mes[id];
-
+    
+        mesActual.reCrearPlazo();
         mesActual.procesarMes();
 
         let inversion = mesActual.getInversion();
-        let interesGenerado = mesActual.getInteresGenerado();
+        let interesAnterior = mesActual.getInteresAnterior();        
         let monto = 0;
 
-        monto = (this.reinvertir) ? inversion + interesGenerado : inversion;
+        monto = inversion;
+        monto += (this.reinvertir) ? interesAnterior : 0;
 
         this.calcularAhorroAcumulado(monto);
         this.calcularFalta(monto);
-        this.calcularInteresGeneradoTotal(interesGenerado);
+        this.calcularInteresGeneradoTotal(interesAnterior);
 
+    }
+
+    resetPlan(){
+        this.resetAhorroAcumulado();
+        this.resetFalta();
+        this.resetInteresTotal();
     }
 
     calcularPlanAhorro() {
 
-        this.resetAhorroAcumulado();
-        this.resetFalta();
-        this.resetInteresTotal();
+        this.resetPlan();
 
         while (this.falta > 0) {
             this.nuevoMes();
@@ -212,13 +222,12 @@ class PlanAhorro {
     reCalcularPlanDeAhorro() {
         let i = 0;
 
-        this.resetAhorroAcumulado();
-        this.resetFalta();
-        this.resetInteresTotal();
+        this.resetPlan();
+
         while (this.falta > 0) {
 
             if (i < this.getMeses()) {
-                this.procesarMes(i);
+                this.procesarMes(i);                
                 if ((i + 1) < this.getMeses()) {
                     this.mes[i + 1].setAhorroAcumulado(this.getAhorroAcumulado());
                     this.mes[i + 1].setInteresAnterior(this.mes[i].getInteresGenerado());
@@ -307,18 +316,22 @@ function listadoMeses(pa) {
                                             <input type="checkbox" id="editar${i}" name="Editar" class="editar">
                                         </div>
                                         <form>
-                                            <div>
+                                             <div>
                                                 <label for="InversionMensual"> Inversión Mensual:</label>
                                                 <input id="inversionMensual${i}" name="InversionMensual" value= ${mes.getInversion()} disabled>
-                                            </div>
+                                            </div>    
                                             <div>    
+                                                <label for="AhorroAcumulado"> Ahorro Acumulado:</label>
+                                                <input id="ahorroAcumulado${i}" name="AhorroAcumulado" value= ${mes.getAhorroAcumulado()} disabled>
+                                            </div>                                         
+                                            <div>    
+                                                <label for="InteresAnterior"> Interés Anterior:</label>
+                                                <input id="interesAnterior${i}" name="InteresAnterior" value= ${mes.getInteresAnterior()} disabled>
+                                            </div >                                             
+                                            <div>
                                                 <label for="InteresGenerado"> Interés Generado:</label>
                                                 <input id="interesGenerado${i}" name="InteresGenerado" value= ${mes.getInteresGenerado()} disabled>
-                                            </div > 
-                                            <div>    
-                                            <label for="AhorroAcumulado"> Ahorro Acumulado:</label>
-                                            <input id="ahorroAcumulado${i}" name="AhorroAcumulado" value= ${mes.getAhorroAcumulado()} disabled>
-                                        </div > 
+                                            </div>                                                                         
                                         </form >
                                     </div>`;
             cajaMeses.appendChild(contenedorMes);
@@ -344,7 +357,8 @@ function resultadoPlan(pa) {
     let mensaje = "El objetivo de tu plazo fijo es de un monto de $" + pa.getObjetivo() + SALTO;
 
     // EN BASE A LA CANTIDAD DE MESES QUE LLEVE LLEGAR AL OBJETIVO CAMBIA EL MENSAJE QUE SE MUESTRA AL USUARIO
-    submensaje = (pa.getMeses() == 1) ? 'mes' : 'meses';
+    let anio = Math.round(pa.getMeses()/12);
+    submensaje = (pa.getMeses() == 1) ? 'mes' : 'meses (' + anio + ((anio==1?' año':' años')) + ')';
 
     // MENSAJE DE RESULTADO
     mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '.';
@@ -471,7 +485,7 @@ function actualizarValor() {
             mes.setInversion(parseFloat(monto.value));
             mes.reCrearPlazo();
 
-            document.getElementById('gananciaAnterior' + num).value = mes.getInteresGenerado();
+            document.getElementById('interesAnterior' + num).value = mes.getInteresAnterior();
             document.getElementById('ahorroAcumulado' + num).value = mes.getAhorroAcumulado();
 
             PlanAhorroTemp.reCalcularPlanDeAhorro();
