@@ -45,6 +45,15 @@ hr{
     background-color: gray;
 }
 
+.flex-item form div{
+    display: flex;
+    justify-content: space-between;
+}
+
+.flex-item form div input{
+    margin: 2px;
+}
+
 .incompleto{
     border-color: red;  
     background-color: rgb(243, 126, 126);  
@@ -61,6 +70,7 @@ hr{
 #meses{
     display: flex;
     flex-wrap: wrap;    
+    justify-content: space-around;
     width: 95%;    
     margin: 0 auto;
 }
@@ -76,8 +86,6 @@ hr{
 
 #meses .cabeceraMes h4{    
     margin: 0;
-    display: flex;
-     align-items: center;     
 }
 
 #meses .cabeceraMes input{    
@@ -118,7 +126,7 @@ input[disabled]{
     }
 
     #meses{
-        width: 50%;
+        width: 100%;        
     }
 
 }

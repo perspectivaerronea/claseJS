@@ -67,7 +67,7 @@ class Mes {
         this.interesAnterior = interesAnterior;
     }
 
-    getInteresAnterior(){
+    getInteresAnterior() {
         return DOS_DECIMALES(this.interesAnterior);
     }
 
@@ -120,7 +120,7 @@ class PlanAhorro {
         return this.mes[id];
     }
 
-    getListadoMeses(){
+    getListadoMeses() {
         return this.mes;
     }
 
@@ -186,12 +186,12 @@ class PlanAhorro {
     procesarMes(id) {
 
         let mesActual = this.mes[id];
-    
+
         mesActual.reCrearPlazo();
         mesActual.procesarMes();
 
         let inversion = mesActual.getInversion();
-        let interesAnterior = mesActual.getInteresAnterior();        
+        let interesAnterior = mesActual.getInteresAnterior();
         let monto = 0;
 
         monto = inversion;
@@ -203,7 +203,7 @@ class PlanAhorro {
 
     }
 
-    resetPlan(){
+    resetPlan() {
         this.resetAhorroAcumulado();
         this.resetFalta();
         this.resetInteresTotal();
@@ -227,7 +227,7 @@ class PlanAhorro {
         while (this.falta > 0) {
 
             if (i < this.getMeses()) {
-                this.procesarMes(i);                
+                this.procesarMes(i);
                 if ((i + 1) < this.getMeses()) {
                     this.mes[i + 1].setAhorroAcumulado(this.getAhorroAcumulado());
                     this.mes[i + 1].setInteresAnterior(this.mes[i].getInteresGenerado());
@@ -281,7 +281,6 @@ function mensajes(icono, titulo, texto, tiempo, botonConfirmar, botonCancelar, t
         })
     }
 }
-
 
 function limpiarMeses(cajaMeses) {
     //Borrar los elementos en caso que se esté reprocesando        
@@ -357,8 +356,8 @@ function resultadoPlan(pa) {
     let mensaje = "El objetivo de tu plazo fijo es de un monto de $" + pa.getObjetivo() + SALTO;
 
     // EN BASE A LA CANTIDAD DE MESES QUE LLEVE LLEGAR AL OBJETIVO CAMBIA EL MENSAJE QUE SE MUESTRA AL USUARIO
-    let anio = Math.round(pa.getMeses()/12);
-    submensaje = (pa.getMeses() == 1) ? 'mes' : 'meses (' + anio + ((anio==1?' año':' años')) + ')';
+    let anio = Math.round(pa.getMeses() / 12);
+    submensaje = (pa.getMeses() == 1) ? 'mes' : 'meses (' + anio + ((anio == 1 ? ' año' : ' años')) + ')';
 
     // MENSAJE DE RESULTADO
     mensaje += 'Vas a lograr tu objetivo en ' + pa.getMeses() + ' ' + submensaje + ' con un ahorro total de $' + pa.getAhorroAcumulado() + '.';
@@ -398,7 +397,7 @@ function valoresPrueba() {
     localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
 }
 
-function validaciones(){
+function validaciones() {
     if (!(validacion(montoObjetivo))) { return false; }
     if (!(validacion(ahorroMensual))) { return false; }
     if (!(validacion(tna))) { return false; }
@@ -419,7 +418,7 @@ function cargarValoresPrueba() {
 
 
     //VALIDACIONES
-    if(!validaciones()){
+    if (!validaciones()) {
         return false;
     }
 
@@ -449,10 +448,10 @@ function validacion(obj) {
         mensajes('error', 'Dato Requerido', 'Falta definir un valor para este campo.', 0, true, false, '', '');
 
         return false;
-    } else if(isNaN(obj.value)){
+    } else if (isNaN(obj.value)) {
         obj.focus();
         obj.classList.add(claseError);
-        
+
         mensajes('error', 'Tipo de Dato Incorrecto', 'El valor ingresado debe ser un número.', 0, true, false, '', '');
         return false;
     }
@@ -517,7 +516,7 @@ function armarPlanDeAhorro(e) {
     e.preventDefault();
 
     //VALIDACIONES
-    if(!validaciones()){
+    if (!validaciones()) {
         return false;
     }
 
@@ -597,16 +596,18 @@ function guardarPlan() {
 
 //Carga Plan, dispara el procesamiento si es que hay algún valor guardado
 function cargarPlan() {
+
     let decision = false;
+
 
     //Si hay datos guardados disparo la generación del plan    
     montoObjetivo.value = cargarJSON(montoObjetivo) || 0;
     ahorroMensual.value = cargarJSON(ahorroMensual) || 0;
     tna.value = cargarJSON(tna) || 0;
-    reinvertir.checked = (cargarJSON(reinvertir) == 'true') ? true : false;    
+    reinvertir.checked = (cargarJSON(reinvertir) == 'true') ? true : false;
 
     //VALIDACIONES
-    if(!validaciones()){
+    if (!validaciones()) {
         return false;
     }
 
@@ -623,11 +624,39 @@ function cargarPlan() {
 
         //Genera el plan asociado a los valores que se habían almacenado
         creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
-
     }
-
 }
 
+function cargarPlanTimeOut() {
+
+    Swal.fire({
+        title: '¡Cargando Valores guardados!',
+        html: 'La carga terminará en <b></b> milisegundos.',
+        timer: 2500,
+        timerProgressBar: true,        
+        didOpen: () => {
+            Swal.showLoading()
+            const b = Swal.getHtmlContainer().querySelector('b')
+            timerInterval = setInterval(() => {
+                b.textContent = (Swal.getTimerLeft() < 10 ? 0 : Swal.getTimerLeft());
+            }, 10)
+        },
+        willClose: () => {
+            clearInterval(timerInterval)
+        }
+    }).then((result) => {
+        /* Read more about handling dismissals below */
+        if (result.dismiss === Swal.DismissReason.timer) {
+            cargarPlan();
+        }
+    })
+}
+
+const cargaPlanAsync = async () => {
+    await cargarPlanTimeOut();
+}
+
+//Variable temporal para el plan de ahorro;
 let PlanAhorroTemp = new PlanAhorro(parseFloat(0), parseFloat(0), false, parseFloat(0));
 
 //EVENTOS 
@@ -641,8 +670,8 @@ btnLimpiar.addEventListener("click", limpiar);
 //GUARDAR
 btnGuardar.addEventListener("click", guardarPlan);
 
-//CARGAR
-btnCargar.addEventListener("click", cargarPlan);
+//CARGAR + AHORA 
+btnCargar.addEventListener("click", cargaPlanAsync);
 
 //CREA VALORES DE PRUEBA EN EL LOCAL STORAGE
 valoresPrueba();
