@@ -721,6 +721,7 @@ btnGuardar.disabled = true;
 btnCargar.disabled = true;
 btnBorrar.disabled = true;
 
+
 //Si bien todos los botones especiales como 'limpiar', 'guardar', 'cargar', 'borrar datos guardados' arrancan en estado disabled
 //evaluo si ya existe alguna de las variables en el storage, y de ser así, habilito los campos correspondientes. 
 //¡IMPORTANTE! <-- Este código evalua por el localstorage de las variables generadas por el usuario, NO por los valores de prueba
