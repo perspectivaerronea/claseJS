@@ -9,7 +9,7 @@ const ahorroMensual = document.getElementById("ahorroMensual");
 const tna = document.getElementById("tna");
 const reinvertir = document.getElementById('reinvertir');
 const resultado = document.getElementById('resultado');
-const mes_modificado = [];
+let mes_modificado = [];
 
 //BOTONES
 const submit = document.getElementById("procesar");
@@ -381,9 +381,7 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
 
     resultadoPlan(pa);
 
-    PlanAhorroTemp = pa;
-
-    mensajes('success', 'Generación Completa', 'Se generó con éxito el plan de ahorro.', 1500, false, false, '', '');
+    PlanAhorroTemp = pa;  
 
     btnLimpiar.disabled = false;
     btnGuardar.disabled = false;
@@ -528,6 +526,8 @@ function armarPlanDeAhorro(e) {
     }
 
     creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
+
+    mensajes('success', 'Generación Completa', 'Se generó con éxito el plan de ahorro.', 1500, false, false, '', '');
 }
 
 //Limpia el formulario y todo lo demás.
@@ -592,12 +592,17 @@ function guardarPlan() {
 
     btnCargar.disabled = false;
     btnBorrar.disabled = false;
+
+    //almaceno el array de meses generado para el plan actual
+    let enJSON = JSON.stringify(PlanAhorroTemp.mes);
+    localStorage.setItem("mesesGuardados", enJSON);
 }
 
 //Carga Plan, dispara el procesamiento si es que hay algún valor guardado
 function cargarPlan() {
 
     let decision = false;
+    let cambiosManuales = false;
 
 
     //Si hay datos guardados disparo la generación del plan    
@@ -605,6 +610,7 @@ function cargarPlan() {
     ahorroMensual.value = cargarJSON(ahorroMensual) || 0;
     tna.value = cargarJSON(tna) || 0;
     reinvertir.checked = (cargarJSON(reinvertir) == 'true') ? true : false;
+    mes_modificado = JSON.parse(localStorage.getItem("mesesGuardados")) || [];
 
     //VALIDACIONES
     if (!validaciones()) {
@@ -624,6 +630,33 @@ function cargarPlan() {
 
         //Genera el plan asociado a los valores que se habían almacenado
         creaPlan(montoObjetivo.value, ahorroMensual.value, decision, tna.value);
+
+
+        //SE REVISA EL ARRAY DE MESES PARA BUSCAR MODIFICACIONES MANUALES POR PARTE DEL USUARIO
+        for (let i = 0; i < mes_modificado.length; i++) {         
+            let mes = PlanAhorroTemp.getMes(i);
+            if (mes.getInversion() != parseFloat(mes_modificado[i]['inversion'])) {
+
+                cambiosManuales = true;
+
+                mes.setInversion(parseFloat(mes_modificado[i]['inversion']));
+                mes.reCrearPlazo();
+
+                document.getElementById('inversionMensual' + i).value = mes.getInversion();
+                document.getElementById('interesAnterior' + i).value = mes.getInteresAnterior();
+                document.getElementById('ahorroAcumulado' + i).value = mes.getAhorroAcumulado();
+            }
+        }
+
+        if (cambiosManuales) {
+            PlanAhorroTemp.reCalcularPlanDeAhorro();
+
+            resultadoPlan(PlanAhorroTemp);
+        }
+
+
+        mensajes('success', 'Generación Completa', 'Se cargó con éxito el plan de ahorro.', 1500, false, false, '', '');
+
     }
 }
 
@@ -633,7 +666,7 @@ function cargarPlanTimeOut() {
         title: '¡Cargando Valores guardados!',
         html: 'La carga terminará en <b></b> milisegundos.',
         timer: 2500,
-        timerProgressBar: true,        
+        timerProgressBar: true,
         didOpen: () => {
             Swal.showLoading()
             const b = Swal.getHtmlContainer().querySelector('b')
