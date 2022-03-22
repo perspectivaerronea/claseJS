@@ -715,6 +715,12 @@ btnCargarPrueba.addEventListener("click", cargarValoresPrueba);
 //BORRAR DATOS GUARDADOS
 btnBorrar.addEventListener("click", borrarGuardado);
 
+// Al ingresar, si no hay generado ningún plan, no hay razón por la cual deban estar habilitados los campos de LIMPIAR y GUARDAR
+btnLimpiar.disabled = true;
+btnGuardar.disabled = true;
+btnCargar.disabled = true;
+btnBorrar.disabled = true;
+
 //Si bien todos los botones especiales como 'limpiar', 'guardar', 'cargar', 'borrar datos guardados' arrancan en estado disabled
 //evaluo si ya existe alguna de las variables en el storage, y de ser así, habilito los campos correspondientes. 
 //¡IMPORTANTE! <-- Este código evalua por el localstorage de las variables generadas por el usuario, NO por los valores de prueba
@@ -722,7 +728,3 @@ if (cargarJSON(montoObjetivo) != null) {
     btnCargar.disabled = false;
     btnBorrar.disabled = false;
 }
-
-// Al ingresar, si no hay generado ningún plan, no hay razón por la cual deban estar habilitados los campos de LIMPIAR y GUARDAR
-btnLimpiar.disabled = true;
-btnGuardar.disabled = true;
