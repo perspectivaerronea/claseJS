@@ -2,6 +2,16 @@
 const SALTO = "\n";
 const DOS_DECIMALES = (num) => { return Math.round(num * 100) / 100; };
 
+const valoresPrueba = async () => {
+    localStorage.clear();
+    const valoresPrueba = await fetch('../json/valoresPrueba.json');
+    const data = await valoresPrueba.json();
+    localStorage.setItem('montoObjetivoPrueba', JSON.stringify(data.montoObjetivoPrueba));
+    localStorage.setItem('ahorroMensualPrueba', JSON.stringify(data.ahorroMensualPrueba));
+    localStorage.setItem('tnaPrueba', JSON.stringify(data.tnaPrueba));
+    localStorage.setItem('reinvertirPrueba', JSON.stringify(data.reinvertirPrueba));
+}
+
 //VARIABLES
 const cajaMeses = document.getElementById("meses");
 const montoObjetivo = document.getElementById("montoObjetivo");
@@ -381,29 +391,24 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
 
     resultadoPlan(pa);
 
-    PlanAhorroTemp = pa;  
+    PlanAhorroTemp = pa;
 
     btnLimpiar.disabled = false;
     btnGuardar.disabled = false;
 }
 
-
-function valoresPrueba() {
-    // localStorage.setItem('montoObjetivoPrueba', JSON.stringify('1000000'));
-    // localStorage.setItem('ahorroMensualPrueba', JSON.stringify('35000'));
-    // localStorage.setItem('tnaPrueba', JSON.stringify('41.5'));
-    // localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
-    localStorage.clear();
-    const valoresPrueba = new Request('../json/valoresPrueba.json');
-    fetch(valoresPrueba)
-        .then(response => response.json())
-        .then(data => {            
-                localStorage.setItem('montoObjetivoPrueba', JSON.stringify(data.montoObjetivoPrueba));            
-                localStorage.setItem('ahorroMensualPrueba', JSON.stringify(data.ahorroMensualPrueba));            
-                localStorage.setItem('tnaPrueba', JSON.stringify(data.tnaPrueba));            
-                localStorage.setItem('reinvertirPrueba', JSON.stringify(data.reinvertirPrueba));            
-        })
-}
+// function valoresPrueba() {
+//     localStorage.clear();
+//     const valoresPrueba = new Request('../json/valoresPrueba.json');
+//     fetch(valoresPrueba)
+//         .then(response => response.json())
+//         .then(data => {            
+//                 localStorage.setItem('montoObjetivoPrueba', JSON.stringify(data.montoObjetivoPrueba));            
+//                 localStorage.setItem('ahorroMensualPrueba', JSON.stringify(data.ahorroMensualPrueba));            
+//                 localStorage.setItem('tnaPrueba', JSON.stringify(data.tnaPrueba));            
+//                 localStorage.setItem('reinvertirPrueba', JSON.stringify(data.reinvertirPrueba));            
+//         })
+// }
 
 function validaciones() {
     if (!(validacion(montoObjetivo))) { return false; }
@@ -643,7 +648,7 @@ function cargarPlan() {
 
 
         //SE REVISA EL ARRAY DE MESES PARA BUSCAR MODIFICACIONES MANUALES POR PARTE DEL USUARIO
-        for (let i = 0; i < mes_modificado.length; i++) {         
+        for (let i = 0; i < mes_modificado.length; i++) {
             let mes = PlanAhorroTemp.getMes(i);
             if (mes.getInversion() != parseFloat(mes_modificado[i]['inversion'])) {
 
