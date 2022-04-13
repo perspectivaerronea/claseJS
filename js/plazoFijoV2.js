@@ -397,19 +397,6 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
     btnGuardar.disabled = false;
 }
 
-// function valoresPrueba() {
-//     localStorage.clear();
-//     const valoresPrueba = new Request('../json/valoresPrueba.json');
-//     fetch(valoresPrueba)
-//         .then(response => response.json())
-//         .then(data => {            
-//                 localStorage.setItem('montoObjetivoPrueba', JSON.stringify(data.montoObjetivoPrueba));            
-//                 localStorage.setItem('ahorroMensualPrueba', JSON.stringify(data.ahorroMensualPrueba));            
-//                 localStorage.setItem('tnaPrueba', JSON.stringify(data.tnaPrueba));            
-//                 localStorage.setItem('reinvertirPrueba', JSON.stringify(data.reinvertirPrueba));            
-//         })
-// }
-
 function validaciones() {
     if (!(validacion(montoObjetivo))) { return false; }
     if (!(validacion(ahorroMensual))) { return false; }
