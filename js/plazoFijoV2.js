@@ -389,10 +389,20 @@ function creaPlan(montoObjetivo, ahorroMensual, decision, tna) {
 
 
 function valoresPrueba() {
-    localStorage.setItem('montoObjetivoPrueba', JSON.stringify('1000000'));
-    localStorage.setItem('ahorroMensualPrueba', JSON.stringify('35000'));
-    localStorage.setItem('tnaPrueba', JSON.stringify('41.5'));
-    localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
+    // localStorage.setItem('montoObjetivoPrueba', JSON.stringify('1000000'));
+    // localStorage.setItem('ahorroMensualPrueba', JSON.stringify('35000'));
+    // localStorage.setItem('tnaPrueba', JSON.stringify('41.5'));
+    // localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
+    localStorage.clear();
+    const valoresPrueba = new Request('./json/valoresprueba.json');
+    fetch(valoresPrueba)
+        .then(response => response.json())
+        .then(data => {            
+                localStorage.setItem('montoObjetivoPrueba', JSON.stringify(data.montoObjetivoPrueba));            
+                localStorage.setItem('ahorroMensualPrueba', JSON.stringify(data.ahorroMensualPrueba));            
+                localStorage.setItem('tnaPrueba', JSON.stringify(data.tnaPrueba));            
+                localStorage.setItem('reinvertirPrueba', JSON.stringify(data.reinvertirPrueba));            
+        })
 }
 
 function validaciones() {
