@@ -394,7 +394,7 @@ function valoresPrueba() {
     // localStorage.setItem('tnaPrueba', JSON.stringify('41.5'));
     // localStorage.setItem('reinvertirPrueba', JSON.stringify('true'));
     localStorage.clear();
-    const valoresPrueba = new Request('valoresPrueba.json');
+    const valoresPrueba = new Request('../valoresPrueba.json');
     fetch(valoresPrueba)
         .then(response => response.json())
         .then(data => {            
